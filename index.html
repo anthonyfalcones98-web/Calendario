@@ -52,13 +52,13 @@
     input:focus, select:focus { outline: none; border-color: var(--gold); box-shadow: 0 0 0 4px rgba(255,215,0,0.25); }
     select { appearance: none; background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23FFD700'%3e%3cpath d='M7 10l5 5 5-5z'/%3e%3c/svg%3e");
              background-repeat: no-repeat; background-position: right 15px center; background-size: 18px; cursor: pointer; }
-    button { width: 100%; padding: 16px; margin: 14px 0; border: none; border-radius: 14px; font-size: 1.2em; font-weight: bold; cursor: pointer; transition: 0.3s; }
+    button { width: 100%; padding: 16px; margin: 14px 0 10px; border: none; border-radius: 14px; font-size: 1.2em; font-weight: bold; cursor: pointer; transition: 0.3s; }
     #btnGenerar { background: var(--primary); color: white; }
     #btnGenerar:hover { background: #002244; transform: translateY(-3px); }
-    .btn-add, .btn-share { background: #28a745 !important; color: white; margin-top: 10px; }
-    .btn-add:hover, .btn-share:hover { background: #218838 !important; }
+    .btn-add, .btn-link { background: #28a745 !important; color: white; }
+    .btn-add:hover, .btn-link:hover { background: #218838 !important; }
     .hidden { display: none; }
-    .share-link { margin-top: 15px; padding: 12px; background: #f1f1f1; border-radius: 10px; font-family: monospace; word-break: break-all; }
+    .share-link { margin-top: 15px; padding: 12px; background: #f1f1f1; border-radius: 10px; font-family: monospace; word-break: break-all; font-size: 0.9em; }
     footer { margin-top: 30px; padding: 16px; font-size: 0.95em; color: rgba(255,255,255,0.9); }
     .dev { margin-top: 10px; font-weight: bold; color: var(--gold); }
     @media (max-width: 480px) { .container { margin: 15px; padding: 25px; } .logo { width: 170px; } }
@@ -89,14 +89,13 @@
       <input type="text" id="actividad" placeholder="z.B. Jugendtreffen" />
     </div>
 
-    <button id="btnGenerar" data-t="generate">GENERAR & DESCARGAR</button>
+    <button id="btnGenerar" data-t="generate">GENERAR & TEILEN</button>
 
     <div id="resultado" class="hidden">
       <p data-t="click_to_add"><strong>Klicken zum Speichern:</strong></p>
       <button id="btnGoogle" class="btn-add">Google Calendar</button>
       <button id="btnApple" class="btn-add">Apple / iOS</button>
-      <button id="btnOutlook" class="btn-add">Outlook / Windows</button>
-      <button id="btnShare" class="btn-share">Link teilen</button>
+      <button id="btnLink" class="btn-link">Link zum Teilen</button>
       <div id="shareUrl" class="share-link hidden"></div>
     </div>
   </div>
@@ -110,15 +109,15 @@
     const trad = {
       es: { title: "Agregar Evento", subtitle: "Münzinghof Eventos", label_month: "Mes:", label_day: "Día:", label_event: "Evento:",
             months: ["Selecciona un mes", "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"],
-            generate: "GENERAR & DESCARGAR", click_to_add: "<strong>Haz clic para guardar:</strong>", 
+            generate: "GENERAR & TEILEN", click_to_add: "<strong>Haz clic para guardar:</strong>",
             compatible: "Funciona en Windows, Mac, Android, iOS y Linux", developed_by: "Desarrollado por: Anthony Oscar Falcones Alcívar" },
       en: { title: "Add Event", subtitle: "Münzinghof Events", label_month: "Month:", label_day: "Day:", label_event: "Event:",
             months: ["Select a month", "January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"],
-            generate: "GENERATE & DOWNLOAD", click_to_add: "<strong>Click to save:</strong>",
+            generate: "GENERATE & SHARE", click_to_add: "<strong>Click to save:</strong>",
             compatible: "Works on Windows, Mac, Android, iOS & Linux", developed_by: "Developed by: Anthony Oscar Falcones Alcívar" },
       de: { title: "Termin hinzufügen", subtitle: "Münzinghof Veranstaltungen", label_month: "Monat:", label_day: "Tag:", label_event: "Veranstaltung:",
             months: ["Monat wählen", "Januar", "Februar", "März", "April", "Mai", "Juni", "Juli", "August", "September", "Oktober", "November", "Dezember"],
-            generate: "GENERIEREN & HERUNTERLADEN", click_to_add: "<strong>Klicken zum Speichern:</strong>",
+            generate: "GENERIEREN & TEILEN", click_to_add: "<strong>Klicken zum Speichern:</strong>",
             compatible: "Funktioniert auf Windows, Mac, Android, iOS & Linux", developed_by: "Entwickelt von: Anthony Oscar Falcones Alcívar" }
     };
     let lang = localStorage.getItem('lang') || 'de';
@@ -168,21 +167,24 @@
       const ics = `BEGIN:VCALENDAR\nVERSION:2.0\nBEGIN:VEVENT\nDTSTART:${format(start)}\nDTEND:${format(end)}\nSUMMARY:${act}\nLOCATION:Münzinghof\nEND:VEVENT\nEND:VCALENDAR`;
       const blob = new Blob([ics], { type: 'text/calendar' });
       const url = URL.createObjectURL(blob);
-      const fileName = `${act.replace(/[^a-z0-9]/gi, '_')}.ics`;
+      const safeName = act.replace(/[^a-zA-Z0-9]/g, '_');
+      const fileName = `${safeName}.ics`;
 
-      // Botones
+      // Enlace permanente (requiere subir archivo)
+      const shareLink = `https://anthonyfalcones98-web.github.io/Calendario/eventos/${fileName}`;
+
       document.getElementById('btnGoogle').onclick = () => {
         const gurl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(act)}&dates=${format(start)}/${format(end)}`;
         window.open(gurl, '_blank');
       };
-      document.getElementById('btnApple').onclick = () => { const a = document.createElement('a'); a.href = url; a.download = fileName; a.click(); };
-      document.getElementById('btnOutlook').onclick = () => { const a = document.createElement('a'); a.href = url; a.download = fileName; a.click(); };
-      document.getElementById('btnShare').onclick = () => {
-        const shareUrl = `https://anthonyfalcones98-web.github.io/Calendario/${fileName}`;
-        navigator.clipboard.writeText(shareUrl).then(() => {
-          document.getElementById('shareUrl').textContent = shareUrl;
-          document.getElementById('shareUrl').classList.remove('hidden');
-        });
+      document.getElementById('btnApple').onclick = () => {
+        const a = document.createElement('a'); a.href = url; a.download = fileName; a.click();
+      };
+      document.getElementById('btnLink').onclick = () => {
+        document.getElementById('shareUrl').textContent = shareLink;
+        document.getElementById('shareUrl').classList.remove('hidden');
+        alert("Link kopiert! Teile ihn in Signal, WhatsApp, etc. → Automatischer Download!");
+        navigator.clipboard.writeText(shareLink);
       };
 
       document.getElementById('resultado').classList.remove('hidden');
