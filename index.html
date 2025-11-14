@@ -55,10 +55,12 @@
     button { width: 100%; padding: 16px; margin: 14px 0 10px; border: none; border-radius: 14px; font-size: 1.2em; font-weight: bold; cursor: pointer; transition: 0.3s; }
     #btnGenerar { background: var(--primary); color: white; }
     #btnGenerar:hover { background: #002244; transform: translateY(-3px); }
-    .btn-add, .btn-link { background: #28a745 !important; color: white; }
-    .btn-add:hover, .btn-link:hover { background: #218838 !important; }
+    .btn-unico { background: #28a745 !important; color: white; font-size: 1.3em; padding: 18px; }
+    .btn-unico:hover { background: #218838 !important; }
     .hidden { display: none; }
-    .share-link { margin-top: 15px; padding: 12px; background: #f1f1f1; border-radius: 10px; font-family: monospace; word-break: break-all; font-size: 0.9em; }
+    .share-box { margin-top: 20px; padding: 16px; background: #e9f7ef; border-radius: 12px; text-align: center; }
+    .share-link { font-family: monospace; font-size: 0.95em; word-break: break-all; margin: 10px 0; }
+    .copy-notice { color: #155724; font-weight: bold; }
     footer { margin-top: 30px; padding: 16px; font-size: 0.95em; color: rgba(255,255,255,0.9); }
     .dev { margin-top: 10px; font-weight: bold; color: var(--gold); }
     @media (max-width: 480px) { .container { margin: 15px; padding: 25px; } .logo { width: 170px; } }
@@ -89,14 +91,15 @@
       <input type="text" id="actividad" placeholder="z.B. Jugendtreffen" />
     </div>
 
-    <button id="btnGenerar" data-t="generate">GENERAR & TEILEN</button>
+    <button id="btnGenerar" data-t="generate">GENERIEREN & TEILEN</button>
 
     <div id="resultado" class="hidden">
-      <p data-t="click_to_add"><strong>Klicken zum Speichern:</strong></p>
-      <button id="btnGoogle" class="btn-add">Google Calendar</button>
-      <button id="btnApple" class="btn-add">Apple / iOS</button>
-      <button id="btnLink" class="btn-link">Link zum Teilen</button>
-      <div id="shareUrl" class="share-link hidden"></div>
+      <button id="btnUnico" data-t="add_and_share">Agregar al calendario y compartir</button>
+      <div id="shareBox" class="share-box hidden">
+        <p class="copy-notice" data-t="link_copied">Link kopiert! Teile ihn jetzt:</p>
+        <div id="shareUrl" class="share-link"></div>
+        <p data-t="how_to_use"><small>Empfänger klickt → .ics wird heruntergeladen → Kalender öffnet sich</small></p>
+      </div>
     </div>
   </div>
 
@@ -107,19 +110,44 @@
 
   <script>
     const trad = {
-      es: { title: "Agregar Evento", subtitle: "Münzinghof Eventos", label_month: "Mes:", label_day: "Día:", label_event: "Evento:",
-            months: ["Selecciona un mes", "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"],
-            generate: "GENERAR & TEILEN", click_to_add: "<strong>Haz clic para guardar:</strong>",
-            compatible: "Funciona en Windows, Mac, Android, iOS y Linux", developed_by: "Desarrollado por: Anthony Oscar Falcones Alcívar" },
-      en: { title: "Add Event", subtitle: "Münzinghof Events", label_month: "Month:", label_day: "Day:", label_event: "Event:",
-            months: ["Select a month", "January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"],
-            generate: "GENERATE & SHARE", click_to_add: "<strong>Click to save:</strong>",
-            compatible: "Works on Windows, Mac, Android, iOS & Linux", developed_by: "Developed by: Anthony Oscar Falcones Alcívar" },
-      de: { title: "Termin hinzufügen", subtitle: "Münzinghof Veranstaltungen", label_month: "Monat:", label_day: "Tag:", label_event: "Veranstaltung:",
-            months: ["Monat wählen", "Januar", "Februar", "März", "April", "Mai", "Juni", "Juli", "August", "September", "Oktober", "November", "Dezember"],
-            generate: "GENERIEREN & TEILEN", click_to_add: "<strong>Klicken zum Speichern:</strong>",
-            compatible: "Funktioniert auf Windows, Mac, Android, iOS & Linux", developed_by: "Entwickelt von: Anthony Oscar Falcones Alcívar" }
+      es: { 
+        title: "Agregar Evento", subtitle: "Münzinghof Eventos", 
+        label_month: "Mes:", label_day: "Día:", label_event: "Evento:",
+        months: ["Selecciona un mes", "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"],
+        generate: "GENERAR & COMPARTIR",
+        add_and_share: "Agregar al calendario y compartir",
+        link_copied: "¡Enlace copiado! Compártelo ahora:",
+        how_to_use: "<small>El receptor hace clic → se descarga .ics → se abre en su calendario</small>",
+        error_day: "Día inválido para este mes",
+        compatible: "Funciona en Windows, Mac, Android, iOS y Linux", 
+        developed_by: "Desarrollado por: Anthony Oscar Falcones Alcívar"
+      },
+      en: { 
+        title: "Add Event", subtitle: "Münzinghof Events", 
+        label_month: "Month:", label_day: "Day:", label_event: "Event:",
+        months: ["Select a month", "January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"],
+        generate: "GENERATE & SHARE",
+        add_and_share: "Add to calendar and share",
+        link_copied: "Link copied! Share it now:",
+        how_to_use: "<small>Recipient clicks → .ics downloads → opens in their calendar</small>",
+        error_day: "Invalid day for this month",
+        compatible: "Works on Windows, Mac, Android, iOS & Linux", 
+        developed_by: "Developed by: Anthony Oscar Falcones Alcívar"
+      },
+      de: { 
+        title: "Termin hinzufügen", subtitle: "Münzinghof Veranstaltungen", 
+        label_month: "Monat:", label_day: "Tag:", label_event: "Veranstaltung:",
+        months: ["Monat wählen", "Januar", "Februar", "März", "April", "Mai", "Juni", "Juli", "August", "September", "Oktober", "November", "Dezember"],
+        generate: "GENERIEREN & TEILEN",
+        add_and_share: "Zum Kalender hinzufügen und teilen",
+        link_copied: "Link kopiert! Jetzt teilen:",
+        how_to_use: "<small>Empfänger klickt → .ics wird heruntergeladen → Kalender öffnet sich</small>",
+        error_day: "Ungültiger Tag für diesen Monat",
+        compatible: "Funktioniert auf Windows, Mac, Android, iOS & Linux", 
+        developed_by: "Entwickelt von: Anthony Oscar Falcones Alcívar"
+      }
     };
+
     let lang = localStorage.getItem('lang') || 'de';
     const diasPorMes = [0, 31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
 
@@ -157,34 +185,40 @@
       const mes = parseInt(document.getElementById('mes').value);
       const dia = parseInt(document.getElementById('dia').value);
       const act = document.getElementById('actividad').value.trim();
-      if (!mes || !dia || !act || dia > diasPorMes[mes]) { alert("Ungültiger Tag!"); return; }
+      if (!mes || !dia || !act || dia > diasPorMes[mes]) {
+        alert(trad[lang].error_day);
+        return;
+      }
 
       const hoy = new Date(); let anio = hoy.getFullYear();
       let start = new Date(anio, mes - 1, dia); if (start < hoy) anio++;
       start = new Date(anio, mes - 1, dia); const end = new Date(anio, mes - 1, dia + 1);
 
       const format = d => d.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
-      const ics = `BEGIN:VCALENDAR\nVERSION:2.0\nBEGIN:VEVENT\nDTSTART:${format(start)}\nDTEND:${format(end)}\nSUMMARY:${act}\nLOCATION:Münzinghof\nEND:VEVENT\nEND:VCALENDAR`;
-      const blob = new Blob([ics], { type: 'text/calendar' });
+      const icsContent = `BEGIN:VCALENDAR
+VERSION:2.0
+BEGIN:VEVENT
+DTSTART:${format(start)}
+DTEND:${format(end)}
+SUMMARY:${act}
+LOCATION:Münzinghof
+END:VEVENT
+END:VCALENDAR`.replace(/\n/g, '\r\n');
+
+      const blob = new Blob([icsContent], { type: 'text/calendar;charset=utf-8' });
       const url = URL.createObjectURL(blob);
       const safeName = act.replace(/[^a-zA-Z0-9]/g, '_');
-      const fileName = `${safeName}.ics`;
+      const fileName = `${safeName}_${anio}${mes.toString().padStart(2,'0')}${dia.toString().padStart(2,'0')}.ics`;
 
-      // Enlace permanente (requiere subir archivo)
-      const shareLink = `https://anthonyfalcones98-web.github.io/Calendario/eventos/${fileName}`;
-
-      document.getElementById('btnGoogle').onclick = () => {
-        const gurl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(act)}&dates=${format(start)}/${format(end)}`;
-        window.open(gurl, '_blank');
-      };
-      document.getElementById('btnApple').onclick = () => {
+      document.getElementById('btnUnico').onclick = () => {
+        // Descarga inmediata
         const a = document.createElement('a'); a.href = url; a.download = fileName; a.click();
-      };
-      document.getElementById('btnLink').onclick = () => {
-        document.getElementById('shareUrl').textContent = shareLink;
-        document.getElementById('shareUrl').classList.remove('hidden');
-        alert("Link kopiert! Teile ihn in Signal, WhatsApp, etc. → Automatischer Download!");
-        navigator.clipboard.writeText(shareLink);
+
+        // Copia enlace temporal
+        navigator.clipboard.writeText(url).then(() => {
+          document.getElementById('shareUrl').textContent = url;
+          document.getElementById('shareBox').classList.remove('hidden');
+        });
       };
 
       document.getElementById('resultado').classList.remove('hidden');
